@@ -1,13 +1,13 @@
 import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
+import { Timer } from "../pages/timer";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
+    { title: "Time Bubble" },
+    { name: "description", content: "Focus like in a bubble!" },
   ];
 }
 
 export default function Home() {
-  return <Welcome />;
+  return <Timer />;
 }
