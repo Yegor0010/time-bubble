@@ -8,7 +8,6 @@ import useSound from 'use-sound';
 
 export function Timer() {
   const user = useUserStore((state) => state.user);
-  const loadUser = useUserStore((state) => state.loadUser);
   const addInterval = useIntervalsStore((state) => state.addInterval);
   const {
     focusTime = 25 * 60,
@@ -21,10 +20,6 @@ export function Timer() {
   const [duration, setDuration] = useState(focusTime);
 
   useEffect(() => {
-    loadUser();
-  }, []);
-
-  useEffect(() => {
     // Update duration when settings change
     if (!isOnBrake.current) {
       setDuration(focusTime);
@@ -35,8 +30,6 @@ export function Timer() {
 
   const [playVictory] = useSound(victorySound, { volume: 0.7 });
   const [playBackToWork] = useSound(battleMarch, { volume: 0.5 });
-
-  console.log('render Timer', focusTime);
 
   const handleComplete = () => {
     if (isOnBrake.current) {

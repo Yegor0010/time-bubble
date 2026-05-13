@@ -6,11 +6,13 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
+import { useEffect } from "react";
 
 import type { Route } from "./+types/root";
 import "./app.css";
 import { Navbar } from "./components/navbar";
 import { useTheme } from "./lib/use-theme";
+import { useUserStore } from "./stores/user-store";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -25,6 +27,17 @@ export const links: Route.LinksFunction = () => [
   },
 ];
 
+function StoreInitializer({ children }: { children: React.ReactNode }) {
+  const loadUser = useUserStore((state) => state.loadUser);
+  
+  useEffect(() => {
+    // Load user data once on app initialization
+    loadUser();
+  }, [loadUser]);
+  
+  return <>{children}</>;
+}
+
 function ThemeProvider({ children }: { children: React.ReactNode }) {
   useTheme();
   return <>{children}</>;
@@ -32,7 +45,7 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -64,10 +77,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         />
       </head>
       <body className="h-full pt-0 pb-16 md:pt-16 md:pb-0">
-        <ThemeProvider>
-          <Navbar />
-          {children}
-        </ThemeProvider>
+        <StoreInitializer>
+          <ThemeProvider>
+            <Navbar />
+            {children}
+          </ThemeProvider>
+        </StoreInitializer>
         <ScrollRestoration />
         <Scripts />
       </body>

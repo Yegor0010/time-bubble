@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import dataAdapter from '~/services/dataAdapter';
+import { logger } from './middleware/logger';
 
 interface Settings {
   focusTime: number;
@@ -46,7 +47,7 @@ const defaultUser: User = {
 
 const DATA_STORE_KEY = 'user';
 
-export const useUserStore = create<UserStore>((set, get) => ({
+export const useUserStore = create<UserStore>()(logger((set, get) => ({
   user: defaultUser,
   isLoading: false,
   error: null,
@@ -125,4 +126,4 @@ export const useUserStore = create<UserStore>((set, get) => ({
       }
     }
   },
-}));
+}), 'UserStore'));

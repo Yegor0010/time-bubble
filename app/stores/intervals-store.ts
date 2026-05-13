@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import dataAdapter from '~/services/dataAdapter';
+import { logger } from './middleware/logger';
 
 interface Interval {
   id: number;
@@ -27,7 +28,7 @@ interface IntervalsStore {
 
 const DATA_STORE_KEY = 'intervals';
 
-export const useIntervalsStore = create<IntervalsStore>((set, get) => ({
+export const useIntervalsStore = create<IntervalsStore>()(logger((set, get) => ({
   byId: {},
   isLoading: false,
   error: null,
@@ -86,10 +87,14 @@ export const useIntervalsStore = create<IntervalsStore>((set, get) => ({
   loadIntervals: async () => {
     set({ isLoading: true, error: null });
     try {
-      // TODO: Implement loading all intervals from dataAdapter
-      set({ isLoading: false });
+      const intervals = await dataAdapter.readAll<Interval>(DATA_STORE_KEY);
+      const byId = intervals.reduce((acc, interval) => {
+        acc[interval.id] = interval;
+        return acc;
+      }, {} as Record<number, Interval>);
+      set({ byId, isLoading: false });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
     }
   },
-}));
+}), 'IntervalsStore'));

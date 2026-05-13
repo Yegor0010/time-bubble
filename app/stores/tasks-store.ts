@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import dataAdapter from '~/services/dataAdapter';
+import { logger } from './middleware/logger';
 
 interface Task {
   id: number;
@@ -22,7 +23,7 @@ interface TasksStore {
 
 const DATA_STORE_KEY = 'tasks';
 
-export const useTasksStore = create<TasksStore>((set, get) => ({
+export const useTasksStore = create<TasksStore>()(logger((set, get) => ({
   byId: {},
   isLoading: false,
   error: null,
@@ -84,11 +85,15 @@ export const useTasksStore = create<TasksStore>((set, get) => ({
   loadTasks: async () => {
     set({ isLoading: true, error: null });
     try {
-      // TODO: Implement loading all tasks from dataAdapter
-      set({ isLoading: false });
+      const tasks = await dataAdapter.readAll<Task>(DATA_STORE_KEY);
+      const byId = tasks.reduce((acc, task) => {
+        acc[task.id] = task;
+        return acc;
+      }, {} as Record<number, Task>);
+      set({ byId, isLoading: false });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
       console.error('Failed to load tasks:', error);
     }
   },
-}));
+}), 'TasksStore'));

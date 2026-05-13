@@ -95,6 +95,11 @@ class DataAdapter {
     return await this.db.read<T>(storeName, id);
   }
 
+  async readAll<T>(storeName: string): Promise<T[]> {
+    if (!this.initialized) await this.init();
+    return await this.db.getAll<T>(storeName);
+  }
+
   async update<T extends DataItem>(storeName: string, data: T): Promise<T> {
     if (!this.initialized) await this.init();
 
