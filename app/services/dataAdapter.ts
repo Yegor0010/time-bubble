@@ -1,5 +1,4 @@
 import * as api from './api';
-import { useUserStore } from '~/stores/user-store';
 import dataBase from './indexedDB';
 
 interface DataItem {
@@ -19,6 +18,8 @@ class DataAdapter {
   private db: dataBase;
   private syncQueueStore = 'syncQueue';
   private initialized = false;
+  private _offlineMode = true;
+  private _networkAvailable = navigator.onLine;
 
   constructor() {
     this.db = new dataBase('timeBubbleDB', 1);
@@ -35,32 +36,47 @@ class DataAdapter {
     }
   }
 
-  private get isOnline(): boolean {
-    return useUserStore.getState().user.settings.isOnline;
+  get shouldUseOnline(): boolean {
+    return !this._offlineMode && this._networkAvailable;
   }
 
-  setOnlineMode(isOnline: boolean): void {
-    useUserStore.getState().changeSettings({ isOnline });
-    if (isOnline) {
+  get networkAvailable(): boolean {
+    return this._networkAvailable;
+  }
+
+  get offlineMode(): boolean {
+    return this._offlineMode;
+  }
+
+  setOfflineMode(offlineMode: boolean): void {
+    this._offlineMode = offlineMode;
+
+    if (!offlineMode && this._networkAvailable) {
       this.syncData();
     }
   }
 
   private setupNetworkListeners(): void {
     window.addEventListener('online', () => {
-      console.log('Network connection detected. Enable online mode in settings to sync.');
+      this._networkAvailable = true;
+      console.log('Network connection detected.');
+
+      if (!this._offlineMode) {
+        console.log('Syncing data...');
+        this.syncData();
+      }
     });
 
     window.addEventListener('offline', () => {
+      this._networkAvailable = false;
       console.log('Network connection lost.');
-      this.setOnlineMode(false);
     });
   }
 
   async create<T extends DataItem>(storeName: string, data: T): Promise<T> {
     if (!this.initialized) await this.init();
 
-    if (this.isOnline) {
+    if (this.shouldUseOnline) {
       try {
         await api.create(`/${storeName}`, data);
         return await this.db.create(storeName, data) as unknown as T;
@@ -70,7 +86,6 @@ class DataAdapter {
         return await this.db.create(storeName, data) as unknown as T;
       }
     } else {
-      await this.queueForSync(storeName, 'create', data);
       return await this.db.create(storeName, data) as unknown as T;
     }
   }
@@ -83,7 +98,7 @@ class DataAdapter {
   async update<T extends DataItem>(storeName: string, data: T): Promise<T> {
     if (!this.initialized) await this.init();
 
-    if (this.isOnline) {
+    if (this.shouldUseOnline) {
       try {
         await api.update(`/${storeName}/${data.id}`, data);
         return await this.db.update(storeName, data) as unknown as T;
@@ -93,7 +108,6 @@ class DataAdapter {
         return await this.db.update(storeName, data) as unknown as T;
       }
     } else {
-      await this.queueForSync(storeName, 'update', data);
       return await this.db.update(storeName, data) as unknown as T;
     }
   }
@@ -101,7 +115,7 @@ class DataAdapter {
   async delete(storeName: string, id: number): Promise<void> {
     if (!this.initialized) await this.init();
 
-    if (this.isOnline) {
+    if (this.shouldUseOnline) {
       try {
         await api.remove(`/${storeName}/${id}`);
         await this.db.delete(storeName, id);
@@ -111,7 +125,6 @@ class DataAdapter {
         await this.db.delete(storeName, id);
       }
     } else {
-      await this.queueForSync(storeName, 'delete', { id } as DataItem);
       await this.db.delete(storeName, id);
     }
   }
@@ -134,11 +147,13 @@ class DataAdapter {
   }
 
   async syncData(): Promise<void> {
-    if (!this.initialized || !this.isOnline) return;
+    if (!this.initialized || !this.shouldUseOnline) return;
 
-    // Note: This is a simplified version. In production, you'd need to get all items from syncQueue
-    // The current database class doesn't have a getAll method, so we'll need to add it or handle differently
-    console.log('Sync would happen here - needs getAll implementation in database class');
+    // TODO: Implement: 
+    // - logic to read all items from syncQueueStore
+    // - attempt to sync with server
+    // - clear queue on success
+    console.log('Sync triggered');
   }
 }
 

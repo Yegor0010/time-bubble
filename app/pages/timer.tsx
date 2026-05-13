@@ -14,7 +14,7 @@ export function Timer() {
   const {
     focusTime = 25 * 60,
     breakTime = 5 * 60,
-    isOnline = false,
+    offlineMode = true,
   } = user.settings || {};
 
   const totalIntervals = useIntervalsStore((state) => state.getCount());
@@ -42,8 +42,8 @@ export function Timer() {
     }
   };
 
-  const handleOnlineModeToggle = () => {
-    changeSettings({ isOnline: !isOnline });
+  const handleOfflineModeToggle = () => {
+    changeSettings({ offlineMode: !offlineMode });
   };
 
   const [playVictory] = useSound(victorySound, { volume: 0.7 });
@@ -109,30 +109,30 @@ export function Timer() {
               <option value={3 * 60}>3 minutes</option>
               <option value={5 * 60}>5 minutes</option>
               <option value={10 * 60}>10 minutes</option>
-
-              <div className="flex items-center justify-between gap-2">
-                <label htmlFor="onlineMode" className="text-sm font-medium">
-                  Online Mode
-                </label>
-                <button
-                  id="onlineMode"
-                  onClick={handleOnlineModeToggle}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
-                    isOnline ? 'bg-primary' : 'bg-muted'
-                  }`}
-                  role="switch"
-                  aria-checked={isOnline}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      isOnline ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
               <option value={15 * 60}>15 minutes</option>
               <option value={20 * 60}>20 minutes</option>
             </select>
+          </div>
+
+          <div className="flex items-center justify-between gap-2">
+            <label htmlFor="offlineMode" className="text-sm font-medium">
+              Offline-Only Mode
+            </label>
+            <button
+              id="offlineMode"
+              onClick={handleOfflineModeToggle}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
+                offlineMode ? 'bg-muted' : 'bg-primary'
+              }`}
+              role="switch"
+              aria-checked={!offlineMode}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  offlineMode ? 'translate-x-1' : 'translate-x-6'
+                }`}
+              />
+            </button>
           </div>
         </div>
 

@@ -25,6 +25,8 @@ interface IntervalsStore {
   loadIntervals: () => Promise<void>;
 }
 
+const DATA_STORE_KEY = 'intervals';
+
 export const useIntervalsStore = create<IntervalsStore>((set, get) => ({
   byId: {},
   isLoading: false,
@@ -33,7 +35,7 @@ export const useIntervalsStore = create<IntervalsStore>((set, get) => ({
   addInterval: async (interval) => {
     set({ isLoading: true, error: null });
     try {
-      await dataAdapter.create('intervals', interval);
+      await dataAdapter.create(DATA_STORE_KEY, interval);
       set((state) => ({
         byId: { ...state.byId, [interval.id]: interval },
         isLoading: false,
@@ -47,7 +49,7 @@ export const useIntervalsStore = create<IntervalsStore>((set, get) => ({
   editInterval: async (interval) => {
     set({ isLoading: true, error: null });
     try {
-      await dataAdapter.update('intervals', interval);
+      await dataAdapter.update(DATA_STORE_KEY, interval);
       set((state) => ({
         byId: {
           ...state.byId,
@@ -64,7 +66,7 @@ export const useIntervalsStore = create<IntervalsStore>((set, get) => ({
   deleteInterval: async (id) => {
     set({ isLoading: true, error: null });
     try {
-      await dataAdapter.delete('intervals', id);
+      await dataAdapter.delete(DATA_STORE_KEY, id);
       set((state) => {
         const { [id]: removed, ...restById } = state.byId;
         return { byId: restById, isLoading: false };
@@ -84,8 +86,7 @@ export const useIntervalsStore = create<IntervalsStore>((set, get) => ({
   loadIntervals: async () => {
     set({ isLoading: true, error: null });
     try {
-      // Note: This will load all intervals from IndexedDB on app start
-      console.log('Load intervals from database - implementation pending');
+      // TODO: Implement loading all intervals from dataAdapter
       set({ isLoading: false });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });

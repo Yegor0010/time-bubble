@@ -8,7 +8,7 @@ interface Settings {
   focusTone: string;
   breakTone: string;
   notifications: boolean;
-  isOnline: boolean;
+  offlineMode: boolean;
 }
 
 interface User {
@@ -35,7 +35,7 @@ const defaultSettings: Settings = {
   focusTone: 'default',
   breakTone: 'default',
   notifications: true,
-  isOnline: false, // Offline-first by default
+  offlineMode: true,
 };
 
 const defaultUser: User = {
@@ -55,7 +55,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const updatedUser = { ...get().user, ...payload };
-      await dataAdapter.update('user', updatedUser);
+      await dataAdapter.update(DATA_STORE_KEY, updatedUser);
       set({ user: updatedUser, isLoading: false });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
@@ -71,6 +71,10 @@ export const useUserStore = create<UserStore>((set, get) => ({
         settings: { ...get().user.settings, ...payload },
       };
       await dataAdapter.update(DATA_STORE_KEY, updatedUser);
+
+      if ('offlineMode' in payload) {
+        dataAdapter.setOfflineMode(payload.offlineMode!);
+      }
       set({ user: updatedUser, isLoading: false });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
@@ -96,6 +100,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
     try {
       const user = await dataAdapter.read<User>(DATA_STORE_KEY, 1);
       if (user) {
+        dataAdapter.setOfflineMode(user.settings.offlineMode);
         set({ user, isLoading: false });
       } else {
         await dataAdapter.create(DATA_STORE_KEY, defaultUser);
