@@ -9,6 +9,8 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import { Navbar } from "./components/navbar";
+import { useTheme } from "./lib/use-theme";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -23,6 +25,11 @@ export const links: Route.LinksFunction = () => [
   },
 ];
 
+function ThemeProvider({ children }: { children: React.ReactNode }) {
+  useTheme();
+  return <>{children}</>;
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full">
@@ -31,9 +38,36 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const theme = localStorage.getItem('theme') || 'system';
+                  
+                  if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                  } else if (theme === 'system') {
+                    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                      document.documentElement.classList.add('dark');
+                    }
+                  }
+                } catch (e) {
+                  // Fallback to system preference if error
+                  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add('dark');
+                  }
+                }
+              })();
+            `,
+          }}
+        />
       </head>
-      <body className="h-full">
-        {children}
+      <body className="h-full pt-0 pb-16 md:pt-16 md:pb-0">
+        <ThemeProvider>
+          <Navbar />
+          {children}
+        </ThemeProvider>
         <ScrollRestoration />
         <Scripts />
       </body>

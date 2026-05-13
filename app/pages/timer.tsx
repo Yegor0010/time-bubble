@@ -8,13 +8,11 @@ import useSound from 'use-sound';
 
 export function Timer() {
   const user = useUserStore((state) => state.user);
-  const changeSettings = useUserStore((state) => state.changeSettings);
   const loadUser = useUserStore((state) => state.loadUser);
   const addInterval = useIntervalsStore((state) => state.addInterval);
   const {
     focusTime = 25 * 60,
     breakTime = 5 * 60,
-    offlineMode = true,
   } = user.settings || {};
 
   const totalIntervals = useIntervalsStore((state) => state.getCount());
@@ -26,25 +24,14 @@ export function Timer() {
     loadUser();
   }, []);
 
-  const handleFocusTimeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newFocusTime = Number(e.target.value);
-    changeSettings({ focusTime: newFocusTime });
+  useEffect(() => {
+    // Update duration when settings change
     if (!isOnBrake.current) {
-      setDuration(newFocusTime);
+      setDuration(focusTime);
+    } else {
+      setDuration(breakTime);
     }
-  };
-
-  const handleBreakTimeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newBreakTime = Number(e.target.value);
-    changeSettings({ breakTime: newBreakTime });
-    if (isOnBrake.current) {
-      setDuration(newBreakTime);
-    }
-  };
-
-  const handleOfflineModeToggle = () => {
-    changeSettings({ offlineMode: !offlineMode });
-  };
+  }, [focusTime, breakTime]);
 
   const [playVictory] = useSound(victorySound, { volume: 0.7 });
   const [playBackToWork] = useSound(battleMarch, { volume: 0.5 });
@@ -75,66 +62,6 @@ export function Timer() {
     <main className="flex min-h-screen items-center justify-center">
       <div className="flex flex-1 flex-col items-center gap-6">
         {isOnBrake.current && <p>You're on break!</p>}
-
-        <div className="flex flex-col gap-4 w-full max-w-xs">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="focusTime" className="text-sm font-medium">
-              Focus Time
-            </label>
-            <select
-              id="focusTime"
-              value={focusTime}
-              onChange={handleFocusTimeChange}
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value={15 * 60}>15 minutes</option>
-              <option value={20 * 60}>20 minutes</option>
-              <option value={25 * 60}>25 minutes</option>
-              <option value={30 * 60}>30 minutes</option>
-              <option value={45 * 60}>45 minutes</option>
-              <option value={60 * 60}>60 minutes</option>
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label htmlFor="breakTime" className="text-sm font-medium">
-              Break Time
-            </label>
-            <select
-              id="breakTime"
-              value={breakTime}
-              onChange={handleBreakTimeChange}
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value={3 * 60}>3 minutes</option>
-              <option value={5 * 60}>5 minutes</option>
-              <option value={10 * 60}>10 minutes</option>
-              <option value={15 * 60}>15 minutes</option>
-              <option value={20 * 60}>20 minutes</option>
-            </select>
-          </div>
-
-          <div className="flex items-center justify-between gap-2">
-            <label htmlFor="offlineMode" className="text-sm font-medium">
-              Offline-Only Mode
-            </label>
-            <button
-              id="offlineMode"
-              onClick={handleOfflineModeToggle}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
-                offlineMode ? 'bg-muted' : 'bg-primary'
-              }`}
-              role="switch"
-              aria-checked={!offlineMode}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  offlineMode ? 'translate-x-1' : 'translate-x-6'
-                }`}
-              />
-            </button>
-          </div>
-        </div>
 
         <CountDownTimer
           seconds={duration}

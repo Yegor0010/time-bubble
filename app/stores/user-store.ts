@@ -75,6 +75,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
       if ('offlineMode' in payload) {
         dataAdapter.setOfflineMode(payload.offlineMode!);
       }
+
+      // Save theme to localStorage for quick access on page load
+      if ('theme' in payload) {
+        localStorage.setItem('theme', payload.theme!);
+      }
+
       set({ user: updatedUser, isLoading: false });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
@@ -101,14 +107,18 @@ export const useUserStore = create<UserStore>((set, get) => ({
       const user = await dataAdapter.read<User>(DATA_STORE_KEY, 1);
       if (user) {
         dataAdapter.setOfflineMode(user.settings.offlineMode);
+        // Sync theme to localStorage for quick access on page load
+        localStorage.setItem('theme', user.settings.theme);
         set({ user, isLoading: false });
       } else {
         await dataAdapter.create(DATA_STORE_KEY, defaultUser);
+        localStorage.setItem('theme', defaultUser.settings.theme);
         set({ user: defaultUser, isLoading: false });
       }
     } catch (error) {
       try {
         await dataAdapter.create(DATA_STORE_KEY, defaultUser);
+        localStorage.setItem('theme', defaultUser.settings.theme);
         set({ user: defaultUser, isLoading: false });
       } catch (createError) {
         set({ error: (createError as Error).message, isLoading: false });
