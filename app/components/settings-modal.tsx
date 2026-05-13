@@ -16,7 +16,7 @@ interface SettingsModalProps {
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[500px]" showCloseButton={false}>
+      <DialogContent className="sm:max-w-125" showCloseButton={false}>
         <div className="flex items-center justify-between mb-4">
           <DialogTitle>Settings</DialogTitle>
           <DialogClose

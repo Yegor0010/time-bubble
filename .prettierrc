@@ -19,6 +19,7 @@
   ],
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true,
+  "tailwindFunctions": ["cn", "clsx"],
   "plugins": [
     "prettier-plugin-tailwindcss",
     "@ianvs/prettier-plugin-sort-imports"
